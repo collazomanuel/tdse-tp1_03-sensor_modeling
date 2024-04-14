@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  *
  *
- * @file   : task_b.c
+ * @file   : task_c_test.c
  * @date   : Set 26, 2023
  * @author : Juan Manuel Cruz <jcruz@fi.uba.ar> <jcruz@frba.utn.edu.ar>
  * @version	v1.0.0
@@ -47,64 +47,84 @@
 /* Application & Tasks includes. */
 #include "board.h"
 #include "app.h"
+#include "task_c_fsm.h"
 
 /********************** macros and definitions *******************************/
-#define G_TASK_B_CNT_INI	0u
+#define G_TASK_C_TEST_CNT_INI	0u
 
-#define TASK_B_CNT_INI		0u
-#define TASK_B_CNT_MAX		50u
+#define TASK_C_TEST_CNT_INI		0u
+#define TASK_C_TEST_CNT_MAX		100000u
 
-#define TASK_B_DEL_INI		0u
-#define TASK_B_DEL_MAX		500u
+#define TASK_C_TEST_DEL_INI		0u
+#define TASK_C_TEST_DEL_MAX		5000u
+
+//typedef enum {TEST_0, TEST_1, TEST_2} test_x_t;
+#define TASK_C_TEST_0 (0)
+#define TASK_C_TEST_1 (1)
+#define TASK_C_TEST_2 (2)
+
+#define TASK_C_TEST_X (TASK_C_TEST_0)
 
 /********************** internal data declaration ****************************/
 
 /********************** internal functions declaration ***********************/
 
 /********************** internal data definition *****************************/
-const char *p_task_b 		= "Task B - Non-Blocking Code";
+const char *p_task_c_test	= "Task C (System Modeling) Test";
+
+#if (TASK_C_TEST_X == TASK_C_TEST_0)
+/* Array of events to excite Task C */
+const e_task_c_t e_task_c_array[] = {EVENT_TASK_C_0, EVENT_TASK_C_1, EVENT_TASK_C_2, EVENT_TASK_C_0, EVENT_TASK_C_1, EVENT_TASK_C_2};
+#endif
+
+#if (TASK_C_TEST_X == TASK_C_TEST_1)
+/* Array of events to excite Task C */
+const e_task_c_t e_task_c_array[] = {EVENT_TASK_C_2 EVENT_TASK_C_1, EVENT_TASK_C_0, EVENT_TASK_C_2 EVENT_TASK_C_1, EVENT_TASK_C_0};
+#endif
+
+#if (TASK_C_TEST_X == TASK_C_TEST_2)
+/* Array of events to excite Task C */
+const e_task_c_t e_task_c_array[] = {EVENT_TASK_C_0, EVENT_TASK_C_1, Event_2, EVENT_TASK_C_2, EVENT_TASK_C_1, EVENT_TASK_C_0};
+#endif
 
 /********************** external data declaration *****************************/
-uint32_t g_task_b_cnt;
+uint32_t g_task_c_test_cnt;
 
 /********************** external functions definition ************************/
-void task_b_init(void *parameters)
+void task_c_test_init(void *parameters)
 {
-	/* Print out: Task Initialized */
-	LOGGER_LOG("  %s is running - %s\r\n", GET_NAME(task_b_init), p_task_b);
+	uint32_t i = TASK_C_TEST_X;
 
-	g_task_b_cnt = G_TASK_B_CNT_INI;
+	/* Print out: Task Initialized */
+	LOGGER_LOG("  %s is running - %s\r\n", GET_NAME(task_c_test_init), p_task_c_test);
+
+	g_task_c_test_cnt = G_TASK_C_TEST_CNT_INI;
 
 	/* Print out: Task execution counter */
-	LOGGER_LOG("   %s = %d\r\n", GET_NAME(g_task_b_cnt), (int)g_task_b_cnt);
+	LOGGER_LOG("   %s = %d\r\n", GET_NAME(g_task_c_test_cnt), (int)g_task_c_test_cnt);
+
+	/* Print out: Array of events to excite Task C */
+	LOGGER_LOG("   %s = %d\r\n", GET_NAME(e_task_c_array), (int)i);
 }
 
-void task_b_update(void *parameters)
+void task_c_test_update(void *parameters)
 {
-	/* Memory Layout of C Programs (https://www.geeksforgeeks.org/) */
-	/* Storage Classes in C (https://www.geeksforgeeks.org/) */
-	/* C Variables (https://www.geeksforgeeks.org/) */
-	/* Static Variables in C (https://www.geeksforgeeks.org/) */
-	/* Initialization of static variables in C
-	 * (https://www.geeksforgeeks.org/) */
-	/* Internal static variable vs. External static variable with Examples in C
-	 * (https://www.geeksforgeeks.org/) */
-	/*
-	 * Static variables have the property of preserving their value even after
-	 * they are out of their scope!
-	 * Hence, a static variable preserves its previous value in its previous
-	 * scope and is not initialized again in the new scope.
-	 */
+
 	#if (TEST_X == TEST_0)
 
-	static uint32_t task_b_cnt = TASK_B_CNT_INI;
+	static uint32_t task_c_test_cnt = TASK_C_TEST_CNT_INI;
+	uint32_t i = TASK_C_TEST_X;
+
+	static e_task_c_t event_task_c_test;
+
+	static uint32_t then_task_c_test = TASK_C_TEST_DEL_INI;
+	static uint32_t now_task_c_test  = TASK_C_TEST_DEL_INI;
 
 	#endif
 
 	#if (TEST_X == TEST_1)
 
-	static uint32_t then = TASK_B_DEL_INI;
-	static uint32_t now = TASK_B_DEL_INI;
+	/* Here another code */
 
 	#endif
 
@@ -114,44 +134,40 @@ void task_b_update(void *parameters)
 
 	#endif
 
-	/* Update Task B Counter */
-	g_task_b_cnt++;
+	/* Update Task C Counter */
+	g_task_c_test_cnt++;
 
-	/* Print out: Application Update */
-	LOGGER_LOG("  %s is running - %s\r\n", GET_NAME(task_b_update), p_task_b);
+	/* Check the current tick */
+	now_task_c_test = HAL_GetTick();
+	if ((now_task_c_test - then_task_c_test) >= TASK_C_TEST_DEL_MAX)
+	{
+		/* Only if the current tick is TASK_C_TEST_DEL_MAX mS after the last */
+		/* Reset then = now */
+		then_task_c_test = now_task_c_test;
 
-	/* Print out: Task Updated and execution counter */
-	LOGGER_LOG("   %s = %d\r\n", GET_NAME(g_task_b_cnt), (int)g_task_b_cnt);
+		/* Print out: Application Update */
+		LOGGER_LOG("  %s is is running - %s\r\n", GET_NAME(task_c_test_update), p_task_c_test);
 
-	/* Blocking and Non-Blocking in Node.js (https://www.geeksforgeeks.org/) */
-	/*
-	 * Non-Blocking: It refers to the program that does not block the
-	 * execution of further operations.
-	 * Non-Blocking methods are executed asynchronously.
-	 * Asynchronously means that the program may not necessarily execute line
-	 * by line.
-	 * The program calls the function and move to the next operation and does
-	 * not wait for it to return.
-	 */
-	#if (TEST_X == TEST_0)
+		/* Print out: Task execution counter */
+		LOGGER_LOG("   %s = %d\r\n", GET_NAME(g_task_c_test_cnt), (int)g_task_c_test_cnt);
 
-	if (task_b_cnt < TASK_B_CNT_MAX)
-		task_b_cnt++;
-	else
-		task_b_cnt = TASK_B_CNT_INI;
+		/* Print out: Array of events to excite Task C */
+		LOGGER_LOG("   %s = %d\r\n", GET_NAME(e_task_c_array), (int)i);
 
-	#endif
+		/* Get the event to excite Task C. */
+		event_task_c_test = e_task_c_array[task_c_test_cnt];
+		g_event_task_c = event_task_c_test;
+		g_b_event_task_c = true;
+
+		if (task_c_test_cnt < (sizeof(e_task_c_array)/sizeof(e_task_c_t)))
+			task_c_test_cnt++;
+		else
+			task_c_test_cnt = TASK_C_TEST_CNT_INI;
+	}
 
 	#if (TEST_X == TEST_1)
 
-	/* Check the current tick */
-	now = HAL_GetTick();
-	if ((now - then) >= TASK_B_DEL_MAX)
-	{
-		/* Only if the current tick is TASK_B_DEL_MAX mS after the last */
-		/* Reset then = now */
-		then = now;
-	}
+	/* Here another code */
 
 	#endif
 
